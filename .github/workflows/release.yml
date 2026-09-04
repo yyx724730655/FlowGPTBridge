@@ -1,6 +1,6 @@
 name: Release
 
-# Updating this file triggers the initial release build; later releases use workflow_dispatch.
+# Updating this file triggers the initial release build; later releases use workflow_dispatch. Tests must pass before packaging.
 
 on:
   push:
