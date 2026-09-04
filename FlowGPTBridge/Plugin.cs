@@ -46,7 +46,7 @@ public sealed class Plugin : IPlugin, ISettingProvider
             Title = descriptor.Title,
             SubTitle = descriptor.SubTitle,
             IcoPath = IconPath,
-            Action = _ =>
+            Action = actionContext =>
             {
                 // 先隐藏 Flow，随后异步状态机等待用户松开呼出热键。
                 _context.API.HideMainWindow();
