@@ -73,7 +73,7 @@ jobs:
           - Prompt 只复制到剪贴板，不会自动粘贴或发送。
 
           安装：
-          1. 下载并解压 `$assetName`。
+          1. 下载并解压 $assetName。
           2. 将解压后的全部文件放入 Flow Launcher 用户数据目录下的 `Plugins\FlowGPTBridge`。
           3. 重启 Flow Launcher，输入 `gpt` 测试。
           4. 首次使用前，请确认插件快捷键与 ChatGPT 桌面端快捷键一致。
