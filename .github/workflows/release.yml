@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+        default: v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore .\FlowGPTBridge.sln
+
+      - name: Test
+        run: dotnet test .\FlowGPTBridge.sln -c Release --no-restore
+
+      - name: Publish plugin
+        run: dotnet publish .\FlowGPTBridge\FlowGPTBridge.csproj -c Release --no-restore -o .\artifacts\FlowGPTBridge
+
+      - name: Package plugin
+        id: package
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}"
+          $assetName = "FlowGPTBridge-$tag.zip"
+          $assetPath = Join-Path $PWD "artifacts\$assetName"
+          Compress-Archive -Path ".\artifacts\FlowGPTBridge\*" -DestinationPath $assetPath -Force
+          $hash = (Get-FileHash -Algorithm SHA256 $assetPath).Hash.ToLowerInvariant()
+          "$hash  $assetName" | Set-Content -Encoding ascii ".\artifacts\$assetName.sha256"
+          "asset_name=$assetName" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ inputs.tag }}"
+          $assetName = "${{ steps.package.outputs.asset_name }}"
+          $assetPath = ".\artifacts\$assetName"
+          $checksumPath = "$assetPath.sha256"
+          $notes = @"
+          FlowGPT Bridge 的首个可测试版本。
+
+          主要功能：
+          - 使用 `gpt` 打开或激活 ChatGPT 桌面端；
+          - 支持 Chat、Work、Codex 和当前模式；
+          - 支持普通 Prompt、`/chat`、`/work`、`/codex`、`/current`、`/new`；
+          - 快捷键可在 Flow Launcher 插件设置中配置；
+          - Prompt 只复制到剪贴板，不会自动粘贴或发送。
+
+          安装：
+          1. 下载并解压 `$assetName`。
+          2. 将解压后的全部文件放入 Flow Launcher 用户数据目录下的 `Plugins\FlowGPTBridge`。
+          3. 重启 Flow Launcher，输入 `gpt` 测试。
+          4. 首次使用前，请确认插件快捷键与 ChatGPT 桌面端快捷键一致。
+
+          这是第一版测试发布，建议先在 Windows 10/11 与最新版 Flow Launcher、ChatGPT 桌面端上验证。
+          "@
+
+          gh release create $tag $assetPath $checksumPath --target "${{ github.sha }}" --title "FlowGPT Bridge $tag" --notes $notes --latest
