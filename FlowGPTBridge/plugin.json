@@ -1,0 +1,13 @@
+{
+  "$schema": "https://www.flowlauncher.com/schemas/plugin.schema.json",
+  "ID": "8c38e2d4-5f41-4ea9-9e60-d972738f2d61",
+  "ActionKeyword": "gpt",
+  "Name": "FlowGPT Bridge",
+  "Description": "安全地打开 ChatGPT，并通过可配置快捷键切换 Chat、Work 或 Codex。",
+  "Author": "FlowGPT Bridge Contributors",
+  "Version": "0.1.0",
+  "Language": "csharp",
+  "Website": "",
+  "IcoPath": "Images/icon.png",
+  "ExecuteFileName": "FlowGPTBridge.dll"
+}
