@@ -1,5 +1,7 @@
 name: Release
 
+# Updating this file triggers the initial release build; later releases use workflow_dispatch.
+
 on:
   push:
     branches:
