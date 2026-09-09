@@ -52,7 +52,7 @@ mklink /J "%APPDATA%\FlowLauncher\Plugins\FlowGPTBridge" "D:\path\to\artifacts\F
 
 | 输入 | 行为 |
 |---|---|
-| `gpt` | 打开 ChatGPT，保持当前页面 |
+| `gpt` | 打开 ChatGPT，保持当前模式 |
 | `gpt 帮我整理需求` | 在默认模式新建聊天并自动粘贴 Prompt |
 | `gpt /work` | 仅切换到 Work |
 | `gpt /codex fix tests` | 切换 Codex、新建聊天并自动粘贴 Prompt |
