@@ -84,4 +84,13 @@ public sealed class ResultBuilderTests
         Assert.Contains("Ctrl+Shift+K", result.SubTitle);
         Assert.Contains("Alt+N", result.SubTitle);
     }
+
+    [Fact]
+    public void Prompt_subtitle_describes_automatic_paste_without_send()
+    {
+        var result = _builder.Build(_parser.Parse("hello"), new PluginSettings())[0];
+
+        Assert.Contains("自动粘贴", result.SubTitle);
+        Assert.Contains("不自动发送", result.SubTitle);
+    }
 }

@@ -3,7 +3,7 @@ using System.Windows;
 namespace FlowGPTBridge.Services;
 
 /// <summary>
-/// 在独立 STA 线程写入 Unicode 文本。不会模拟 Ctrl+V。
+/// 在独立 STA 线程写入 Unicode 文本；粘贴快捷键由执行状态机在焦点验证后发送。
 /// </summary>
 public sealed class ClipboardService
 {

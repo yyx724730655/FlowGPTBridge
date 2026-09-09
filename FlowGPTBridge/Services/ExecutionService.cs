@@ -7,7 +7,10 @@ namespace FlowGPTBridge.Services;
 /// </summary>
 public sealed class ExecutionService
 {
+    private const int ModeSwitchDelayMs = 120;
+    private const int NewChatReadyDelayMs = 80;
     private static readonly SemaphoreSlim ExecutionLock = new(1, 1);
+    private static readonly HotkeySetting PasteShortcut = HotkeySetting.Ctrl("V");
     private readonly PluginSettings _settings;
     private readonly ChatGptLauncher _launcher;
     private readonly WindowActivator _windowActivator;
@@ -52,7 +55,22 @@ public sealed class ExecutionService
                     "检测到 Ctrl、Alt、Shift 或 Win 仍被按住，未向任何窗口发送快捷键。");
             }
 
-            var window = await _launcher.GetOrLaunchAsync(cancellationToken).ConfigureAwait(false);
+            // 冷启动 ChatGPT 时并行准备剪贴板，避免把剪贴板写入耗时叠加到启动耗时上。
+            var clipboardTask = plan.Prompt is null
+                ? null
+                : _clipboardService.SetUnicodeTextAsync(plan.Prompt, cancellationToken);
+            var windowTask = _launcher.GetOrLaunchAsync(cancellationToken);
+
+            var window = await windowTask.ConfigureAwait(false);
+            var clipboardReady = clipboardTask is null ||
+                                 await clipboardTask.ConfigureAwait(false);
+            if (!clipboardReady)
+            {
+                return ExecutionResult.Fail(
+                    "操作已停止",
+                    "Prompt 未能写入剪贴板，因此没有发送新聊天或粘贴快捷键。");
+            }
+
             if (window is null)
             {
                 return ExecutionResult.Fail(
@@ -78,7 +96,7 @@ public sealed class ExecutionService
                 }
 
                 _debugLog($"已发送 {plan.TargetMode} 模式快捷键。");
-                await Task.Delay(180, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(ModeSwitchDelayMs, cancellationToken).ConfigureAwait(false);
             }
 
             if (plan.CreateNewChat)
@@ -89,7 +107,7 @@ public sealed class ExecutionService
                 {
                     return ExecutionResult.Fail(
                         plan.SwitchMode ? "已切换模式" : "ChatGPT 已打开",
-                        "新聊天快捷键未发送，因此没有复制 Prompt。");
+                        "新聊天快捷键未发送，因此没有继续粘贴 Prompt。");
                 }
 
                 _debugLog("已发送新聊天快捷键。");
@@ -97,22 +115,23 @@ public sealed class ExecutionService
 
             if (plan.Prompt is not null)
             {
-                if (!await _clipboardService.SetUnicodeTextAsync(plan.Prompt, cancellationToken)
-                        .ConfigureAwait(false))
+                await Task.Delay(NewChatReadyDelayMs, cancellationToken).ConfigureAwait(false);
+                if (!_shortcutSender.Send(PasteShortcut, _windowActivator.IsForegroundChatGpt))
                 {
                     return ExecutionResult.Fail(
                         "新聊天已打开",
-                        "Prompt 未能写入剪贴板，请手动复制后再粘贴。");
+                        "Prompt 自动粘贴失败，但内容仍保留在剪贴板中，可手动粘贴。");
                 }
 
+                _debugLog("Prompt 已自动粘贴，未发送消息。");
                 return ExecutionResult.Ok(
-                    "Prompt 已复制",
-                    "请在 ChatGPT 中手动粘贴；插件不会自动粘贴或发送。");
+                    "Prompt 已粘贴",
+                    "未自动发送消息。");
             }
 
             if (plan.CreateNewChat)
             {
-                return ExecutionResult.Ok("已新建聊天", "未执行粘贴或发送。");
+                return ExecutionResult.Ok("已新建聊天", "未自动发送消息。");
             }
 
             if (plan.SwitchMode)

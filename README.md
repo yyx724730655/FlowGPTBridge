@@ -2,7 +2,7 @@
 
 FlowGPT Bridge 是一个 Windows 平台的 Flow Launcher 插件。它通过 `gpt` 关键字打开或激活 ChatGPT 桌面端，并使用用户可配置的快捷键切换 Chat、Work、Codex 或新建聊天。
 
-插件不调用 OpenAI API，不使用 UI Automation，不读取聊天内容，也不会自动粘贴或发送 Prompt。
+插件不调用 OpenAI API，不使用 UI Automation，也不读取聊天内容。输入 Prompt 时会自动粘贴，但不会自动发送。
 
 ## 当前版本
 
@@ -15,7 +15,8 @@ FlowGPT Bridge 是一个 Windows 平台的 Flow Launcher 插件。它通过 `gpt
 - 从 Windows 开始菜单注册信息、手动路径或 AppUserModelID 启动 ChatGPT；
 - 恢复最小化窗口、置前并按进程身份再次验证焦点；
 - 使用串行 `SendInput` 发送模式/新聊天快捷键；
-- 写入 Unicode 剪贴板并短间隔重试；
+- 写入 Unicode 剪贴板并短间隔重试，在焦点验证后自动粘贴；
+- 成功操作静默完成，只有异常时才显示提示；
 - WPF 设置页：录制、清除、测试和恢复四个快捷键；
 - 解析、结果列表和执行计划单元测试。
 
@@ -52,18 +53,19 @@ mklink /J "%APPDATA%\FlowLauncher\Plugins\FlowGPTBridge" "D:\path\to\artifacts\F
 | 输入 | 行为 |
 |---|---|
 | `gpt` | 打开 ChatGPT，保持当前页面 |
-| `gpt 帮我整理需求` | 在默认模式新建聊天并复制 Prompt |
+| `gpt 帮我整理需求` | 在默认模式新建聊天并自动粘贴 Prompt |
 | `gpt /work` | 仅切换到 Work |
-| `gpt /codex fix tests` | 切换 Codex、新建聊天并复制 Prompt |
+| `gpt /codex fix tests` | 切换 Codex、新建聊天并自动粘贴 Prompt |
 | `gpt /new` | 当前模式新建聊天 |
 | `gpt -- /work 的含义` | 将 `/work 的含义` 作为普通 Prompt |
 
 ## 安全边界
 
 - 发送每个快捷键前都会用前台窗口 PID 再次验证 ChatGPT 进程身份；验证失败即停止。
-- 新聊天快捷键失败时不会复制 Prompt，避免用户误以为已经进入新会话。
+- 新聊天快捷键失败时不会继续发送粘贴快捷键。
 - Prompt 不会写入日志，结果列表只显示单行截断预览。
-- 全部代码中没有 `Ctrl+V`、`Enter`、屏幕坐标点击或 UI Automation。
+- `Ctrl+V` 只会在前台窗口再次确认为 ChatGPT 后发送；不会发送 `Enter`。
+- 全部代码中没有屏幕坐标点击或 UI Automation。
 
 ## Windows 集成测试清单
 
@@ -73,5 +75,5 @@ mklink /J "%APPDATA%\FlowLauncher\Plugins\FlowGPTBridge" "D:\path\to\artifacts\F
 - 无法取得焦点时其他应用不会收到快捷键；
 - 按住 Alt 呼出 Flow 后不会发生修饰键粘连；
 - 修改四个快捷键后发送的是新配置；
-- Prompt 进入剪贴板，但 ChatGPT 输入框保持为空；
-- 全流程没有自动粘贴或自动发送。
+- Prompt 自动进入 ChatGPT 输入框，但不会自动发送；
+- 所有成功操作均不弹出提示，异常仍正常提示。

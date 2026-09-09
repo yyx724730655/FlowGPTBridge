@@ -86,8 +86,8 @@ public sealed class ResultBuilder
         return
         [
             new ResultDescriptor(
-                query.Prompt is null ? "在当前模式新建聊天" : "在当前模式新建聊天并复制 Prompt",
-                $"新聊天：{HotkeyFormatter.Format(settings.NewChatShortcut)} · 不自动粘贴或发送{preview}",
+                query.Prompt is null ? "在当前模式新建聊天" : "在当前模式新建聊天并粘贴 Prompt",
+                $"新聊天：{HotkeyFormatter.Format(settings.NewChatShortcut)} · 自动粘贴，不自动发送{preview}",
                 new ExecutionPlan(TargetMode.Current, false, true, query.Prompt))
         ];
     }
@@ -107,7 +107,7 @@ public sealed class ResultBuilder
 
         return new ResultDescriptor(
             title,
-            $"{modePart}新聊天：{HotkeyFormatter.Format(settings.NewChatShortcut)} · 不自动粘贴或发送 · {Preview(prompt)}",
+            $"{modePart}新聊天：{HotkeyFormatter.Format(settings.NewChatShortcut)} · 自动粘贴，不自动发送 · {Preview(prompt)}",
             new ExecutionPlan(mode, mode != TargetMode.Current, true, prompt));
     }
 

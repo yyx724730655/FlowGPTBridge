@@ -26,6 +26,12 @@ public sealed class WindowActivator
         }
 
         var foreground = NativeMethods.GetForegroundWindow();
+        if (foreground == window.Handle && IsForegroundChatGpt())
+        {
+            _debugLog("ChatGPT 已经处于前台，无需重复激活。");
+            return true;
+        }
+
         var foregroundThread = foreground == nint.Zero
             ? 0
             : NativeMethods.GetWindowThreadProcessId(foreground, out _);
@@ -75,7 +81,7 @@ public sealed class WindowActivator
                 return true;
             }
 
-            await Task.Delay(40, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(25, cancellationToken).ConfigureAwait(false);
         }
 
         _debugLog("未能确认 ChatGPT 成为前台窗口。");

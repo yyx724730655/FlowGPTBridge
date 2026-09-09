@@ -50,7 +50,7 @@ public sealed class Plugin : IPlugin, ISettingProvider
             {
                 // 先隐藏 Flow，随后异步状态机等待用户松开呼出热键。
                 _context.API.HideMainWindow();
-                _ = ExecuteAndNotifyAsync(descriptor.Plan);
+                _ = ExecuteAsync(descriptor.Plan);
                 return true;
             }
         }).ToList();
@@ -61,12 +61,15 @@ public sealed class Plugin : IPlugin, ISettingProvider
         SaveSettings,
         hotkey => _executionService.TestShortcutAsync(hotkey));
 
-    private async Task ExecuteAndNotifyAsync(ExecutionPlan plan)
+    private async Task ExecuteAsync(ExecutionPlan plan)
     {
         var result = await _executionService.ExecuteAsync(plan).ConfigureAwait(false);
 
-        // Flow 的消息 API 会自行调度 UI；消息中不包含 Prompt。
-        _context.API.ShowMsg(result.Title, result.Message, IconPath);
+        // 正常操作保持安静；只有失败时才提示，且消息中不包含 Prompt。
+        if (!result.Success)
+        {
+            _context.API.ShowMsg(result.Title, result.Message, IconPath);
+        }
     }
 
     private void SaveSettings() => _context.API.SaveSettingJsonStorage<PluginSettings>();

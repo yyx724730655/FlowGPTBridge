@@ -14,6 +14,8 @@ public sealed class ChatGptLauncher
     private static readonly string[] KnownProcessNames = ["ChatGPT"];
     private readonly PluginSettings _settings;
     private readonly Action<string> _debugLog;
+    private string? _cachedRegisteredAppId;
+    private bool _registeredAppIdResolved;
 
     public ChatGptLauncher(PluginSettings settings, Action<string> debugLog)
     {
@@ -113,7 +115,7 @@ public sealed class ChatGptLauncher
                 return window;
             }
 
-            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(50, cancellationToken).ConfigureAwait(false);
         }
 
         _debugLog($"等待 ChatGPT 窗口超时，耗时 {stopwatch.ElapsedMilliseconds} ms。");
@@ -133,14 +135,21 @@ public sealed class ChatGptLauncher
             return true;
         }
 
-        var registeredAppId = await TryResolveRegisteredAppIdAsync(cancellationToken)
-            .ConfigureAwait(false);
-        if (!string.IsNullOrWhiteSpace(registeredAppId) && TryLaunchAppId(registeredAppId))
+        // 常见独立安装路径可以直接启动，避免为每次冷启动先创建 PowerShell 进程。
+        if (TryLaunchKnownExecutableLocations())
         {
             return true;
         }
 
-        return TryLaunchKnownExecutableLocations();
+        if (!_registeredAppIdResolved)
+        {
+            _cachedRegisteredAppId = await TryResolveRegisteredAppIdAsync(cancellationToken)
+                .ConfigureAwait(false);
+            _registeredAppIdResolved = true;
+        }
+
+        return !string.IsNullOrWhiteSpace(_cachedRegisteredAppId) &&
+               TryLaunchAppId(_cachedRegisteredAppId);
     }
 
     private bool TryLaunchConfiguredExecutable()
