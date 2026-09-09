@@ -1,12 +1,19 @@
 name: Release
 
+# Updating this file triggers the v0.2.0 release build; future releases use workflow_dispatch.
+
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release.yml
   workflow_dispatch:
     inputs:
       tag:
         description: Release tag
         required: true
-        default: v0.1.1
+        default: v0.2.0
 
 permissions:
   contents: write
@@ -15,7 +22,7 @@ jobs:
   build-and-release:
     runs-on: windows-latest
     env:
-      RELEASE_TAG: ${{ inputs.tag || 'v0.1.1' }}
+      RELEASE_TAG: ${{ inputs.tag || 'v0.2.0' }}
 
     steps:
       - name: Check out source
@@ -56,13 +63,15 @@ jobs:
           $assetPath = ".\artifacts\$assetName"
           $checksumPath = "$assetPath.sha256"
           $notes = @"
-          FlowGPT Bridge v0.1.1 修复版本。
+          FlowGPT Bridge v0.2.0。
 
-          修复内容：
-          - 修正 `GetCurrentThreadId` 的 Win32 DLL 导入；
-          - 解决窗口激活阶段的 `EntryPointNotFoundException`；
-          - 恢复模式切换和新建聊天快捷键发送；
-          - 增加原生入口映射回归测试。
+          更新内容：
+          - Prompt 新建聊天后自动粘贴，但不会自动发送；
+          - 所有成功操作静默完成，仅在失败时显示通知；
+          - 常见安装路径优先于 PowerShell 应用注册查询；
+          - 缓存已解析的 AppUserModelID；
+          - 缩短窗口发现和前台确认的轮询间隔；
+          - ChatGPT 已处于前台时跳过重复激活。
 
           安装：
           1. 下载并解压 $assetName。
