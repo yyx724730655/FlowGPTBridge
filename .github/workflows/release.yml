@@ -6,7 +6,7 @@ on:
       tag:
         description: Release tag
         required: true
-        default: v0.2.0
+        default: v0.2.1
 
 permissions:
   contents: write
@@ -15,7 +15,7 @@ jobs:
   build-and-release:
     runs-on: windows-latest
     env:
-      RELEASE_TAG: ${{ inputs.tag || 'v0.2.0' }}
+      RELEASE_TAG: ${{ inputs.tag || 'v0.2.1' }}
 
     steps:
       - name: Check out source
@@ -56,15 +56,13 @@ jobs:
           $assetPath = ".\artifacts\$assetName"
           $checksumPath = "$assetPath.sha256"
           $notes = @"
-          FlowGPT Bridge v0.2.0。
+          FlowGPT Bridge v0.2.1。
 
           更新内容：
-          - Prompt 新建聊天后自动粘贴，但不会自动发送；
-          - 所有成功操作静默完成，仅在失败时显示通知；
-          - 常见安装路径优先于 PowerShell 应用注册查询；
-          - 缓存已解析的 AppUserModelID；
-          - 缩短窗口发现和前台确认的轮询间隔；
-          - ChatGPT 已处于前台时跳过重复激活。
+          - 模式结果标题统一显示为“打开 ChatGPT — Chat/Work/Codex 模式”；
+          - 结果说明只描述将执行的操作，不再显示插件内部快捷键；
+          - 避免内部快捷键与 Flow Launcher 右侧的结果选择快捷键产生混淆；
+          - Prompt、新建聊天和显式模式命令使用一致的语义说明。
 
           安装：
           1. 下载并解压 $assetName。

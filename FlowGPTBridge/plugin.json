@@ -5,7 +5,7 @@
   "Name": "FlowGPT Bridge",
   "Description": "安全地打开 ChatGPT，并通过可配置快捷键切换 Chat、Work 或 Codex。",
   "Author": "FlowGPT Bridge Contributors",
-  "Version": "0.1.0",
+  "Version": "0.2.1",
   "Language": "csharp",
   "Website": "",
   "IcoPath": "Images/icon.png",
