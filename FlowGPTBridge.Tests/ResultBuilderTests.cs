@@ -15,9 +15,16 @@ public sealed class ResultBuilderTests
         var results = _builder.Build(_parser.Parse(string.Empty), new PluginSettings());
 
         Assert.Equal(4, results.Count);
-        Assert.Contains("保持当前页面", results[0].Title);
+        Assert.Contains("保持当前模式", results[0].Title);
         Assert.False(results[0].Plan.SwitchMode);
         Assert.False(results[0].Plan.CreateNewChat);
+
+        Assert.Equal("打开 ChatGPT — Chat 模式", results[1].Title);
+        Assert.Equal("切换到 Chat 模式，不新建聊天", results[1].SubTitle);
+        Assert.Equal("打开 ChatGPT — Work 模式", results[2].Title);
+        Assert.Equal("切换到 Work 模式，不新建聊天", results[2].SubTitle);
+        Assert.Equal("打开 ChatGPT — Codex 模式", results[3].Title);
+        Assert.Equal("切换到 Codex 模式，不新建聊天", results[3].SubTitle);
     }
 
     [Theory]
@@ -71,7 +78,7 @@ public sealed class ResultBuilderTests
     }
 
     [Fact]
-    public void Subtitle_uses_current_configured_shortcuts()
+    public void Subtitle_does_not_show_internal_shortcuts()
     {
         var settings = new PluginSettings
         {
@@ -81,8 +88,9 @@ public sealed class ResultBuilderTests
 
         var result = Assert.Single(_builder.Build(_parser.Parse("/work hello"), settings));
 
-        Assert.Contains("Ctrl+Shift+K", result.SubTitle);
-        Assert.Contains("Alt+N", result.SubTitle);
+        Assert.DoesNotContain("Ctrl+Shift+K", result.SubTitle);
+        Assert.DoesNotContain("Alt+N", result.SubTitle);
+        Assert.Equal("切换到 Work 模式并新建聊天 · 自动粘贴，不自动发送 · hello", result.SubTitle);
     }
 
     [Fact]
